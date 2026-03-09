@@ -4,6 +4,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q8S746G84"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-2Q8S746G84');
+</script>
 <title>Spiritual Agent — 宇宙からのメッセージ</title>
 <meta name="description" content="今のあなたに必要なスピリチュアルメッセージを、プレアデス高等評議会からお届けします。">
 <meta property="og:title" content="Spiritual Agent — 宇宙からのメッセージ">
@@ -215,7 +223,7 @@ body{
 // ==========================================
 // DATA
 // ==========================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxq5sicRIyENXqulJGV6GBdb23C7GIN0BUfs8aM2NSD_IutrmOAW-t8746O6zPgxnhS2w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxq5sicRIyENXquIJGV6GBdb23C7GIN0BUfs8aM2NSD_IutrmOAW-t874606zPgxnhS2w/exec";
 
 let CONTENTS = [];
 let ORACLE_MESSAGES = [];
@@ -274,6 +282,7 @@ function flipCard() {
   const msgText = msg.msg || msg.message || "";
   document.getElementById('oracleMessage').innerText = msgText;
   document.getElementById('cardInner').classList.add('flipped');
+  gtag('event', 'oracle_card_flip', {event_category: 'oracle', event_label: msgText.substring(0, 50)});
   setTimeout(() => {
     const msgTags = msg.tags || [];
     const contents = getContentsByTags(msgTags, 3);
@@ -372,6 +381,7 @@ function showDiagResult() {
     const score = diagState.collectedTags.filter(t => v.includes(t)).length;
     if (score > bestScore) { bestScore = score; bestKey = k; }
   }
+  gtag('event', 'diagnosis_complete', {event_category: 'diagnosis', event_label: bestKey});
   const msgs = DIAG_MESSAGES[bestKey];
   const contents = getContentsByTags(diagState.collectedTags, 3);
   flow.innerHTML = `
@@ -436,7 +446,7 @@ function renderContentCards(containerId, contents) {
     const typeLabel = c.type === 'youtube' ? '▶ YouTube' : c.type === 'note' ? '📖 Note' : '🎧 Podcast';
     const typeClass = 'type-' + c.type;
     return `
-      <a class="content-card" href="${c.url}" target="_blank" rel="noopener">
+      <a class="content-card" href="${c.url}" target="_blank" rel="noopener" onclick="gtag('event','content_click',{event_category:'content',event_label:'${c.type}: ${(c.title||'').substring(0,40).replace(/'/g,'')}'})">
         <div class="content-type ${typeClass}">${typeLabel}</div>
         <div class="content-title">${c.title}</div>
       </a>
@@ -446,12 +456,14 @@ function renderContentCards(containerId, contents) {
 
 // Share
 function shareTwitter() {
+  gtag('event', 'share', {event_category: 'share', event_label: 'twitter'});
   const text = "プレアデス高等評議会から、今日のメッセージを受け取りました ✦\n\n#SpiritualAgent #プレアデス #スピリチュアル";
   const url = window.location.href;
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
 }
 
 function copyLink() {
+  gtag('event', 'share', {event_category: 'share', event_label: 'copy_link'});
   navigator.clipboard.writeText(window.location.href).then(() => {
     const btn = document.getElementById('copyBtn') || document.getElementById('copyBtn2');
     if(btn) { btn.textContent = 'コピーしました ✓'; setTimeout(()=>{btn.textContent='リンクをコピー'},2000); }
