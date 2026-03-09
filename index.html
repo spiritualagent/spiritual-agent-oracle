@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spiritual Agent — 宇宙からのメッセージ</title>
 <meta name="description" content="今のあなたに必要なスピリチュアルメッセージを、プレアデス高等評議会からお届けします。">
+<meta property="og:title" content="Spiritual Agent — 宇宙からのメッセージ">
+<meta property="og:description" content="プレアデス高等評議会から、今日のあなたに届いたメッセージを受け取ってください。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://spiritualagent.github.io/spiritual-agent-oracle/">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -28,366 +32,118 @@ body{
   min-height:100vh;
   overflow-x:hidden;
 }
-
-/* Stars background */
 .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .stars canvas{display:block;width:100%;height:100%}
-
-/* Layout */
 .app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-
-/* Header */
-.header{
-  text-align:center;
-  padding:60px 24px 20px;
-}
+.header{text-align:center;padding:60px 24px 20px}
 .header-logo{
   font-family:'Zen Kaku Gothic New',sans-serif;
-  font-size:13px;
-  letter-spacing:6px;
-  text-transform:uppercase;
-  color:var(--accent);
-  margin-bottom:8px;
+  font-size:13px;letter-spacing:6px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;
 }
-.header-sub{
-  font-size:12px;
-  color:var(--dim);
-  letter-spacing:1px;
-}
-
-/* Screen management */
+.header-sub{font-size:12px;color:var(--dim);letter-spacing:1px}
 .screen{
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  width:100%;
-  max-width:480px;
-  padding:0 24px;
-  animation:fadeUp .6s ease;
+  display:none;flex-direction:column;align-items:center;
+  width:100%;max-width:480px;padding:0 24px;animation:fadeUp .6s ease;
 }
 .screen.active{display:flex}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* Oracle screen */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .oracle-title{
-  font-family:'Noto Serif JP',serif;
-  font-size:clamp(20px,5vw,28px);
-  font-weight:600;
-  color:var(--bright);
-  text-align:center;
-  line-height:1.6;
-  margin:40px 0 16px;
+  font-family:'Noto Serif JP',serif;font-size:clamp(20px,5vw,28px);font-weight:600;
+  color:var(--bright);text-align:center;line-height:1.6;margin:40px 0 16px;
 }
-.oracle-desc{
-  font-size:14px;
-  color:var(--dim);
-  text-align:center;
-  line-height:1.8;
-  margin-bottom:40px;
-}
-
-/* Card */
+.oracle-desc{font-size:14px;color:var(--dim);text-align:center;line-height:1.8;margin-bottom:40px}
 .card-container{
-  perspective:800px;
-  width:280px;
-  height:400px;
-  margin:0 auto 40px;
-  cursor:pointer;
+  perspective:800px;width:280px;height:400px;margin:0 auto 40px;cursor:pointer;
 }
+.card-container.disabled{cursor:wait;opacity:.7}
 .card-inner{
-  position:relative;
-  width:100%;
-  height:100%;
-  transition:transform .8s cubic-bezier(.4,.2,.2,1);
-  transform-style:preserve-3d;
+  position:relative;width:100%;height:100%;
+  transition:transform .8s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;
 }
 .card-inner.flipped{transform:rotateY(180deg)}
 .card-face{
-  position:absolute;
-  width:100%;
-  height:100%;
-  backface-visibility:hidden;
-  border-radius:20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+  position:absolute;width:100%;height:100%;backface-visibility:hidden;
+  border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .card-front{
   background:linear-gradient(145deg,#12103a,#1a1445);
-  border:1px solid #2a2560;
-  box-shadow:0 0 60px rgba(155,138,255,.08);
+  border:1px solid #2a2560;box-shadow:0 0 60px rgba(155,138,255,.08);
 }
-.card-front-symbol{
-  font-size:64px;
-  margin-bottom:20px;
-  opacity:.8;
-}
-.card-front-text{
-  font-family:'Noto Serif JP',serif;
-  font-size:14px;
-  color:var(--accent2);
-  letter-spacing:3px;
-}
-.card-front-hint{
-  font-size:11px;
-  color:var(--dim);
-  margin-top:20px;
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{
-  0%,100%{opacity:.4}
-  50%{opacity:1}
-}
+.card-front-symbol{font-size:64px;margin-bottom:20px;opacity:.8}
+.card-front-text{font-family:'Noto Serif JP',serif;font-size:14px;color:var(--accent2);letter-spacing:3px}
+.card-front-hint{font-size:11px;color:var(--dim);margin-top:20px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 .card-back{
   transform:rotateY(180deg);
   background:linear-gradient(145deg,#1a1050,#0d0825);
-  border:1px solid var(--accent);
-  box-shadow:0 0 80px rgba(155,138,255,.15);
-  padding:32px 24px;
-  text-align:center;
-  overflow-y:auto;
+  border:1px solid var(--accent);box-shadow:0 0 80px rgba(155,138,255,.15);
+  padding:32px 24px;text-align:center;overflow-y:auto;
 }
-.card-back-label{
-  font-size:10px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  color:var(--gold);
-  margin-bottom:16px;
-}
+.card-back-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
 .card-back-message{
-  font-family:'Noto Serif JP',serif;
-  font-size:16px;
-  font-weight:400;
-  color:var(--bright);
-  line-height:2;
-  margin-bottom:20px;
+  font-family:'Noto Serif JP',serif;font-size:16px;font-weight:400;
+  color:var(--bright);line-height:2;margin-bottom:20px;
 }
-.card-back-from{
-  font-size:11px;
-  color:var(--dim);
-}
-
-/* Buttons */
+.card-back-from{font-size:11px;color:var(--dim)}
 .btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  padding:14px 32px;
-  border:none;
-  border-radius:50px;
-  font-family:'Noto Sans JP',sans-serif;
-  font-size:14px;
-  font-weight:500;
-  cursor:pointer;
-  transition:all .3s;
-  text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 32px;border:none;border-radius:50px;
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;transition:all .3s;text-decoration:none;
 }
 .btn-primary{
-  background:linear-gradient(135deg,var(--accent),#7b68ee);
-  color:#fff;
+  background:linear-gradient(135deg,var(--accent),#7b68ee);color:#fff;
   box-shadow:0 4px 24px rgba(155,138,255,.3);
 }
-.btn-primary:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 32px rgba(155,138,255,.4);
-}
-.btn-ghost{
-  background:transparent;
-  color:var(--accent);
-  border:1px solid var(--border);
-}
-.btn-ghost:hover{
-  border-color:var(--accent);
-  background:rgba(155,138,255,.05);
-}
-.btn-gold{
-  background:linear-gradient(135deg,var(--gold),#c5943a);
-  color:#0a0a12;
-  font-weight:700;
-}
-
-/* Mode switch */
-.mode-switch{
-  display:flex;
-  gap:8px;
-  margin:30px 0 20px;
-}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 32px rgba(155,138,255,.4)}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);background:rgba(155,138,255,.05)}
+.mode-switch{display:flex;gap:8px;margin:30px 0 20px}
 .mode-btn{
-  padding:8px 20px;
-  border-radius:30px;
-  font-size:12px;
-  font-weight:500;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--dim);
-  cursor:pointer;
-  transition:all .3s;
-  font-family:'Noto Sans JP',sans-serif;
+  padding:8px 20px;border-radius:30px;font-size:12px;font-weight:500;
+  border:1px solid var(--border);background:transparent;color:var(--dim);
+  cursor:pointer;transition:all .3s;font-family:'Noto Sans JP',sans-serif;
 }
-.mode-btn.active{
-  background:rgba(155,138,255,.12);
-  border-color:var(--accent);
-  color:var(--accent);
-}
-
-/* Diagnostic */
+.mode-btn.active{background:rgba(155,138,255,.12);border-color:var(--accent);color:var(--accent)}
 .diag-question{
-  font-family:'Noto Serif JP',serif;
-  font-size:18px;
-  color:var(--bright);
-  text-align:center;
-  margin:30px 0 24px;
-  line-height:1.7;
+  font-family:'Noto Serif JP',serif;font-size:18px;color:var(--bright);
+  text-align:center;margin:30px 0 24px;line-height:1.7;
 }
-.diag-options{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  width:100%;
-  margin-bottom:30px;
-}
+.diag-options{display:flex;flex-direction:column;gap:12px;width:100%;margin-bottom:30px}
 .diag-option{
-  padding:16px 20px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  background:var(--card);
-  color:var(--text);
-  font-size:14px;
-  cursor:pointer;
-  transition:all .3s;
-  text-align:left;
-  font-family:'Noto Sans JP',sans-serif;
-  line-height:1.6;
+  padding:16px 20px;border:1px solid var(--border);border-radius:14px;
+  background:var(--card);color:var(--text);font-size:14px;cursor:pointer;
+  transition:all .3s;text-align:left;font-family:'Noto Sans JP',sans-serif;line-height:1.6;
 }
-.diag-option:hover{
-  border-color:var(--accent);
-  background:rgba(155,138,255,.06);
-  transform:translateX(4px);
-}
-.diag-option .emoji{margin-right:8px;font-size:16px}
-
-/* Result */
-.result-section{
-  width:100%;
-  margin-bottom:20px;
-}
+.diag-option:hover{border-color:var(--accent);background:rgba(155,138,255,.06);transform:translateX(4px)}
+.result-section{width:100%;margin-bottom:20px}
 .result-msg{
-  font-family:'Noto Serif JP',serif;
-  font-size:16px;
-  color:var(--bright);
-  text-align:center;
-  line-height:2;
-  margin:20px 0 32px;
-  padding:24px;
+  font-family:'Noto Serif JP',serif;font-size:16px;color:var(--bright);
+  text-align:center;line-height:2;margin:20px 0 32px;padding:24px;
   background:linear-gradient(145deg,rgba(26,16,80,.5),rgba(13,8,37,.5));
-  border:1px solid rgba(155,138,255,.15);
-  border-radius:16px;
+  border:1px solid rgba(155,138,255,.15);border-radius:16px;
 }
-.result-label{
-  font-size:11px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color:var(--dim);
-  margin-bottom:12px;
-}
+.result-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
 .content-card{
-  display:block;
-  padding:16px 20px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:var(--card);
-  margin-bottom:10px;
-  text-decoration:none;
-  transition:all .3s;
+  display:block;padding:16px 20px;border:1px solid var(--border);border-radius:12px;
+  background:var(--card);margin-bottom:10px;text-decoration:none;transition:all .3s;
 }
-.content-card:hover{
-  border-color:var(--accent);
-  transform:translateY(-2px);
-  box-shadow:0 4px 20px rgba(155,138,255,.1);
-}
-.content-type{
-  font-size:10px;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  margin-bottom:4px;
-}
+.content-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(155,138,255,.1)}
+.content-type{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
 .type-youtube{color:#ef6a6a}
 .type-note{color:var(--gold)}
 .type-podcast{color:#4ecb8d}
-.content-title{
-  font-size:14px;
-  font-weight:500;
-  color:var(--bright);
-  line-height:1.6;
-}
-
-/* Share */
-.share-area{
-  text-align:center;
-  margin:24px 0 40px;
-}
-.share-text{
-  font-size:12px;
-  color:var(--dim);
-  margin-bottom:12px;
-}
-.share-buttons{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-}
-
-/* Footer */
-.footer{
-  text-align:center;
-  padding:40px 24px;
-  width:100%;
-}
-.footer-links{
-  display:flex;
-  gap:24px;
-  justify-content:center;
-  margin-bottom:16px;
-  flex-wrap:wrap;
-}
-.footer-links a{
-  font-size:12px;
-  color:var(--dim);
-  text-decoration:none;
-  transition:color .3s;
-}
+.content-title{font-size:14px;font-weight:500;color:var(--bright);line-height:1.6}
+.share-area{text-align:center;margin:24px 0 40px}
+.share-text{font-size:12px;color:var(--dim);margin-bottom:12px}
+.share-buttons{display:flex;gap:10px;justify-content:center}
+.footer{text-align:center;padding:40px 24px;width:100%}
+.footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.footer-links a{font-size:12px;color:var(--dim);text-decoration:none;transition:color .3s}
 .footer-links a:hover{color:var(--accent)}
-.footer-copy{
-  font-size:11px;
-  color:var(--dim);
-  opacity:.5;
-}
-
-/* Loading shimmer */
-.shimmer{
-  position:relative;
-  overflow:hidden;
-}
-.shimmer::after{
-  content:'';
-  position:absolute;
-  top:0;left:-100%;
-  width:100%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(155,138,255,.05),transparent);
-  animation:shimmer 2s infinite;
-}
-@keyframes shimmer{
-  to{left:100%}
-}
-
-@media(max-width:400px){
-  .card-container{width:240px;height:340px}
-}
+.footer-copy{font-size:11px;color:var(--dim);opacity:.5}
+.loading-text{font-size:12px;color:var(--dim);text-align:center;margin:8px 0;animation:pulse 2s ease-in-out infinite}
+@media(max-width:400px){.card-container{width:240px;height:340px}}
 </style>
 </head>
 <body>
@@ -400,7 +156,6 @@ body{
     <div class="header-sub">プレアデス高等評議会からのメッセージ</div>
   </div>
 
-  <!-- Mode Switch -->
   <div class="mode-switch">
     <button class="mode-btn active" onclick="switchMode('oracle')">✦ 今日のメッセージ</button>
     <button class="mode-btn" onclick="switchMode('diag')">◎ 魂の診断</button>
@@ -410,12 +165,13 @@ body{
   <div class="screen active" id="screen-oracle">
     <div class="oracle-title">宇宙が、今日のあなたに<br>届けたい言葉があります</div>
     <div class="oracle-desc">カードに触れて、<br>プレアデスからのメッセージを受け取ってください。</div>
-    <div class="card-container" id="oracleCard" onclick="flipCard()">
+    <div id="loadingIndicator" class="loading-text">✦ 宇宙と接続中...</div>
+    <div class="card-container disabled" id="oracleCard" onclick="flipCard()">
       <div class="card-inner" id="cardInner">
         <div class="card-face card-front">
           <div class="card-front-symbol">✦</div>
           <div class="card-front-text">Message from Pleiades</div>
-          <div class="card-front-hint">タップしてカードを開く</div>
+          <div class="card-front-hint" id="cardHint">読み込み中...</div>
         </div>
         <div class="card-face card-back">
           <div class="card-back-label" id="oracleLabel">Today's Message</div>
@@ -445,7 +201,6 @@ body{
     <div id="diagFlow"></div>
   </div>
 
-  <!-- Footer -->
   <div class="footer">
     <div class="footer-links">
       <a href="https://www.youtube.com/@Spiritual_Agent" target="_blank">YouTube</a>
@@ -458,13 +213,13 @@ body{
 
 <script>
 // ==========================================
-// DATA — コンテンツはここを差し替えるだけで更新可能
+// DATA
 // ==========================================
-// ★★★ ここにPART 2 Step 3で取得したURLを貼る ★★★
-const API_URL = "https://script.google.com/macros/s/AKfycbxq5sicRIyENXqulJGV6GBdb23C7GIN0BUfs8aM2NSD_IutrmOAW-t8746O6zPgxnhS2w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxq5sicRIyENXquIJGV6GBdb23C7GIN0BUfs8aM2NSD_IutrmOAW-t874606zPgxnhS2w/exec";
 
 let CONTENTS = [];
 let ORACLE_MESSAGES = [];
+let dataLoaded = false;
 
 async function loadData() {
   try {
@@ -472,17 +227,70 @@ async function loadData() {
     const data = await res.json();
     CONTENTS = data.contents || [];
     ORACLE_MESSAGES = data.messages || [];
+    dataLoaded = true;
     console.log("データ読み込み完了:", CONTENTS.length, "件のコンテンツ,", ORACLE_MESSAGES.length, "件のメッセージ");
+
+    // UIを有効化
+    document.getElementById('oracleCard').classList.remove('disabled');
+    document.getElementById('cardHint').textContent = 'タップしてカードを開く';
+    document.getElementById('loadingIndicator').style.display = 'none';
   } catch (err) {
     console.error("データ読み込みエラー:", err);
+    // フォールバック
     CONTENTS = [{id:"y1",type:"youtube",title:"Spiritual Agent Channel",url:"https://www.youtube.com/@Spiritual_Agent",tags:["general"]}];
     ORACLE_MESSAGES = [{msg:"あなたは宇宙に愛されています。その事実を今日、思い出してください。",tags:["general"]}];
+    dataLoaded = true;
+    document.getElementById('oracleCard').classList.remove('disabled');
+    document.getElementById('cardHint').textContent = 'タップしてカードを開く';
+    document.getElementById('loadingIndicator').style.display = 'none';
   }
 }
 
 loadData();
 
-// Diagnostic flow
+// ==========================================
+// APP LOGIC
+// ==========================================
+let currentMode = 'oracle';
+let diagState = {step:0, collectedTags:[]};
+let isFlipped = false;
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && mode==='oracle') || (i===1 && mode==='diag'));
+  });
+  document.getElementById('screen-oracle').classList.toggle('active', mode==='oracle');
+  document.getElementById('screen-diag').classList.toggle('active', mode==='diag');
+  if (mode === 'diag') { diagState = {step:0,collectedTags:[]}; renderDiagStep(); }
+}
+
+// Oracle
+function flipCard() {
+  if (isFlipped) return;
+  if (!dataLoaded || ORACLE_MESSAGES.length === 0) return;
+  isFlipped = true;
+  const msg = ORACLE_MESSAGES[Math.floor(Math.random() * ORACLE_MESSAGES.length)];
+  const msgText = msg.msg || msg.message || "";
+  document.getElementById('oracleMessage').innerText = msgText;
+  document.getElementById('cardInner').classList.add('flipped');
+  setTimeout(() => {
+    const msgTags = msg.tags || [];
+    const contents = getContentsByTags(msgTags, 3);
+    renderContentCards('oracleContents', contents);
+    document.getElementById('oracleResult').style.display = 'block';
+    document.getElementById('oracleResult').scrollIntoView({behavior:'smooth',block:'start'});
+  }, 900);
+}
+
+function resetOracle() {
+  isFlipped = false;
+  document.getElementById('cardInner').classList.remove('flipped');
+  document.getElementById('oracleResult').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Diagnostic
 const DIAG_STEPS = [
   {
     question:"今、あなたの魂はどんな状態ですか？",
@@ -520,46 +328,6 @@ const DIAG_MESSAGES = {
   "grow":["あなたの光は、すでに多くの魂を照らし始めています。","さらなる高みへの扉は、感謝と共に開きます。","プレアデスは、あなたの進化を全力でサポートしています。"],
 };
 
-// ==========================================
-// APP LOGIC
-// ==========================================
-let currentMode = 'oracle';
-let diagState = {step:0, collectedTags:[]};
-let isFlipped = false;
-
-function switchMode(mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-btn').forEach((b,i) => {
-    b.classList.toggle('active', (i===0 && mode==='oracle') || (i===1 && mode==='diag'));
-  });
-  document.getElementById('screen-oracle').classList.toggle('active', mode==='oracle');
-  document.getElementById('screen-diag').classList.toggle('active', mode==='diag');
-  if (mode === 'diag') { diagState = {step:0,collectedTags:[]}; renderDiagStep(); }
-}
-
-// Oracle
-function flipCard() {
-  if (isFlipped) return;
-  isFlipped = true;
-  const msg = ORACLE_MESSAGES[Math.floor(Math.random() * ORACLE_MESSAGES.length)];
-  document.getElementById('oracleMessage').innerText = msg.msg;
-  document.getElementById('cardInner').classList.add('flipped');
-  setTimeout(() => {
-    const contents = getContentsByTags(msg.tags, 3);
-    renderContentCards('oracleContents', contents);
-    document.getElementById('oracleResult').style.display = 'block';
-    document.getElementById('oracleResult').scrollIntoView({behavior:'smooth',block:'start'});
-  }, 900);
-}
-
-function resetOracle() {
-  isFlipped = false;
-  document.getElementById('cardInner').classList.remove('flipped');
-  document.getElementById('oracleResult').style.display = 'none';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-// Diagnostic
 function renderDiagStep() {
   const flow = document.getElementById('diagFlow');
   if (diagState.step < DIAG_STEPS.length) {
@@ -588,40 +356,30 @@ function selectDiagOption(idx) {
   diagState.collectedTags.push(...option.tags);
   diagState.lastValue = option.value;
   diagState.step++;
-  
   const flow = document.getElementById('diagFlow');
   flow.style.animation = 'none';
   flow.offsetHeight;
   flow.style.animation = 'fadeUp .6s ease';
-  
   renderDiagStep();
 }
 
 function showDiagResult() {
   const flow = document.getElementById('diagFlow');
-  const msgKey = diagState.lastValue || Object.keys(DIAG_MESSAGES)[0];
-  const parentKey = Object.keys(DIAG_MESSAGES).find(k => diagState.collectedTags.some(t => DIAG_MESSAGES[k]) ) || 'heavy';
-  
-  // Find best message match
   let bestKey = 'heavy';
   let bestScore = 0;
-  for (const k of Object.keys(DIAG_MESSAGES)) {
-    const score = diagState.collectedTags.filter(t => ['healing','emptiness'].includes(t) && k==='heavy').length
-      + diagState.collectedTags.filter(t => ['signs','awakening'].includes(t) && k==='lost').length
-      + diagState.collectedTags.filter(t => ['awakening','rebirth'].includes(t) && k==='change').length
-      + diagState.collectedTags.filter(t => ['abundance','frequency'].includes(t) && k==='grow').length;
+  const scoring = {heavy:["healing","emptiness"],lost:["signs","awakening"],change:["awakening","rebirth"],grow:["abundance","frequency"]};
+  for (const [k,v] of Object.entries(scoring)) {
+    const score = diagState.collectedTags.filter(t => v.includes(t)).length;
     if (score > bestScore) { bestScore = score; bestKey = k; }
   }
-  
   const msgs = DIAG_MESSAGES[bestKey];
   const contents = getContentsByTags(diagState.collectedTags, 3);
-  
   flow.innerHTML = `
     <div style="text-align:center;margin-top:20px">
       <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Your Soul Reading</div>
     </div>
     <div class="result-msg">
-      ${msgs.map(m => m).join('<br>')}
+      ${msgs.join('<br>')}
       <div style="margin-top:16px;font-size:11px;color:var(--dim)">— プレアデス高等評議会 —</div>
     </div>
     <div class="result-section">
@@ -644,12 +402,17 @@ function showDiagResult() {
 
 // Content matching
 function getContentsByTags(tags, count) {
+  if (!tags || tags.length === 0) {
+    // タグなしの場合はランダムに返す
+    const shuffled = [...CONTENTS].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }
   const scored = CONTENTS.map(c => {
-    const score = c.tags.filter(t => tags.includes(t)).length;
-    return {...c, score};
+    const cTags = Array.isArray(c.tags) ? c.tags : (typeof c.tags === 'string' ? c.tags.split(',').map(t=>t.trim()) : []);
+    const score = cTags.filter(t => tags.includes(t)).length;
+    return {...c, score, cTags};
   });
   scored.sort((a,b) => b.score - a.score || Math.random() - 0.5);
-  // Try to get variety of types
   const result = [];
   const usedTypes = new Set();
   for (const c of scored) {
@@ -659,7 +422,6 @@ function getContentsByTags(tags, count) {
       usedTypes.add(c.type);
     }
   }
-  // Fill remaining
   for (const c of scored) {
     if (result.length >= count) break;
     if (!result.includes(c)) result.push(c);
@@ -672,7 +434,7 @@ function renderContentCards(containerId, contents) {
   if (!container) return;
   container.innerHTML = contents.map(c => {
     const typeLabel = c.type === 'youtube' ? '▶ YouTube' : c.type === 'note' ? '📖 Note' : '🎧 Podcast';
-    const typeClass = `type-${c.type}`;
+    const typeClass = 'type-' + c.type;
     return `
       <a class="content-card" href="${c.url}" target="_blank" rel="noopener">
         <div class="content-type ${typeClass}">${typeLabel}</div>
@@ -686,7 +448,7 @@ function renderContentCards(containerId, contents) {
 function shareTwitter() {
   const text = "プレアデス高等評議会から、今日のメッセージを受け取りました ✦\n\n#SpiritualAgent #プレアデス #スピリチュアル";
   const url = window.location.href;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
 }
 
 function copyLink() {
@@ -703,7 +465,6 @@ function copyLink() {
   const canvas = document.getElementById('starCanvas');
   const ctx = canvas.getContext('2d');
   let stars = [];
-  
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -713,13 +474,11 @@ function copyLink() {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         r: Math.random() * 1.2 + 0.3,
-        a: Math.random(),
         speed: Math.random() * 0.005 + 0.002,
         phase: Math.random() * Math.PI * 2,
       });
     }
   }
-  
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const t = Date.now() * 0.001;
@@ -727,17 +486,15 @@ function copyLink() {
       const alpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * s.speed * 100 + s.phase));
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,190,255,${alpha * 0.6})`;
+      ctx.fillStyle = 'rgba(200,190,255,' + (alpha * 0.6) + ')';
       ctx.fill();
     });
     requestAnimationFrame(draw);
   }
-  
   window.addEventListener('resize', resize);
   resize();
   draw();
 })();
 </script>
-
 </body>
 </html>
