@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -11,6 +10,17 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-2Q8S746G84');
+  // 匿名ユーザーIDをGA4に紐づける（ログイン機能なしで再訪判定を可能にする）
+  (function(){
+    try{
+      let uid = localStorage.getItem('sa_uid');
+      if(!uid){
+        uid = 'sa_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+        localStorage.setItem('sa_uid', uid);
+      }
+      gtag('set', {'user_id': uid});
+    }catch(e){ /* localStorage不可の環境ではスキップ */ }
+  })();
 </script>
 <title>Spiritual Agent — 宇宙からのメッセージ</title>
 <meta name="description" content="今のあなたに必要なスピリチュアルメッセージを、プレアデス高等評議会からお届けします。">
@@ -152,6 +162,15 @@ body{
 .footer-copy{font-size:11px;color:var(--dim);opacity:.5}
 .loading-text{font-size:12px;color:var(--dim);text-align:center;margin:8px 0;animation:pulse 2s ease-in-out infinite}
 @media(max-width:400px){.card-container{width:240px;height:340px}}
+.streak-badge{display:inline-block;font-size:11px;color:var(--gold);letter-spacing:1px;margin-top:4px}
+.locked-note{text-align:center;font-size:13px;color:var(--gold);line-height:1.8;margin:8px 0 24px}
+.history-toggle-btn{display:block;margin:16px auto 0;background:none;border:none;color:var(--dim);font-size:12px;text-decoration:underline;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.history-toggle-btn:hover{color:var(--accent)}
+.history-panel{margin-top:20px;text-align:left}
+.history-item{padding:12px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card);margin-bottom:8px}
+.history-date{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.history-text{font-size:13px;color:var(--text);line-height:1.7}
+.diag-cta{text-align:center;margin:8px 0 30px}
 </style>
 </head>
 <body>
@@ -173,6 +192,7 @@ body{
   <div class="screen active" id="screen-oracle">
     <div class="oracle-title">宇宙が、今日のあなたに<br>届けたい言葉があります</div>
     <div class="oracle-desc">カードに触れて、<br>プレアデスからのメッセージを受け取ってください。</div>
+    <div id="streakBadge" class="streak-badge" style="display:none;text-align:center;width:100%"></div>
     <div id="loadingIndicator" class="loading-text">✦ 宇宙と接続中...</div>
     <div class="card-container disabled" id="oracleCard" onclick="flipCard()">
       <div class="card-inner" id="cardInner">
@@ -198,9 +218,8 @@ body{
           <button class="btn btn-ghost" onclick="copyLink()" style="font-size:12px;padding:10px 20px;" id="copyBtn">リンクをコピー</button>
         </div>
       </div>
-      <div style="text-align:center">
-        <button class="btn btn-primary" onclick="resetOracle()">もう一度引く</button>
-      </div>
+      <div id="oracleBottomArea"></div>
+      <div id="historyPanel" class="history-panel" style="display:none"></div>
     </div>
   </div>
 
@@ -235,23 +254,16 @@ async function loadData() {
     const data = await res.json();
     CONTENTS = data.contents || [];
     ORACLE_MESSAGES = data.messages || [];
-    dataLoaded = true;
     console.log("データ読み込み完了:", CONTENTS.length, "件のコンテンツ,", ORACLE_MESSAGES.length, "件のメッセージ");
-
-    // UIを有効化
-    document.getElementById('oracleCard').classList.remove('disabled');
-    document.getElementById('cardHint').textContent = 'タップしてカードを開く';
-    document.getElementById('loadingIndicator').style.display = 'none';
   } catch (err) {
     console.error("データ読み込みエラー:", err);
     // フォールバック
     CONTENTS = [{id:"y1",type:"youtube",title:"Spiritual Agent Channel",url:"https://www.youtube.com/@Spiritual_Agent",tags:["general"]}];
-    ORACLE_MESSAGES = [{msg:"あなたは宇宙に愛されています。その事実を今日、思い出してください。",tags:["general"]}];
-    dataLoaded = true;
-    document.getElementById('oracleCard').classList.remove('disabled');
-    document.getElementById('cardHint').textContent = 'タップしてカードを開く';
-    document.getElementById('loadingIndicator').style.display = 'none';
+    ORACLE_MESSAGES = [{id:"m0",msg:"あなたは宇宙に愛されています。その事実を今日、思い出してください。",tags:["general"]}];
   }
+  dataLoaded = true;
+  document.getElementById('loadingIndicator').style.display = 'none';
+  initOracleUI();
 }
 
 loadData();
@@ -262,6 +274,165 @@ loadData();
 let currentMode = 'oracle';
 let diagState = {step:0, collectedTags:[]};
 let isFlipped = false;
+let CURRENT_SHARE_TEXT = "";
+
+// ==========================================
+// STATE HELPERS（localStorage）
+// ==========================================
+function todayStr(d) {
+  d = d || new Date();
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function getDiagProfile() {
+  try { return JSON.parse(localStorage.getItem('sa_diag_profile') || 'null'); } catch(e) { return null; }
+}
+function saveDiagProfile(tags, bestKey) {
+  try {
+    localStorage.setItem('sa_diag_profile', JSON.stringify({tags, bestKey, updatedAt: new Date().toISOString()}));
+  } catch(e) {}
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('sa_history') || '[]'); } catch(e) { return []; }
+}
+function pushHistory(entry) {
+  try {
+    const h = getHistory();
+    h.push(entry);
+    while (h.length > 120) h.shift(); // 上限を設けて肥大化を防ぐ
+    localStorage.setItem('sa_history', JSON.stringify(h));
+  } catch(e) {}
+}
+function getTodayDraw() {
+  const t = todayStr();
+  const h = getHistory();
+  return h.find(x => x.date === t) || null;
+}
+
+function calcStreak(history) {
+  if (!history || history.length === 0) return 0;
+  const dates = new Set(history.map(h => h.date));
+  let streak = 0;
+  let cursor = new Date();
+  // 今日引いていなければ、昨日までの連続日数を数える
+  if (!dates.has(todayStr(cursor))) cursor.setDate(cursor.getDate() - 1);
+  while (dates.has(todayStr(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+// プロフィールのタグに合致するメッセージを重み付きで抽選する。
+// 直近の履歴に含まれるメッセージは重みを大きく下げ、連続した既読を避ける。
+function pickWeightedMessage() {
+  const profile = getDiagProfile();
+  const profileTags = profile ? profile.tags : [];
+  const recentIds = getHistory().slice(-30).map(h => h.messageId);
+
+  const scored = ORACLE_MESSAGES.map(m => {
+    const tags = Array.isArray(m.tags) ? m.tags : (typeof m.tags === 'string' ? m.tags.split(',').map(t=>t.trim()) : []);
+    let score = 1;
+    tags.forEach(t => { if (profileTags.includes(t)) score += 2; });
+    if (recentIds.includes(m.id)) score *= 0.05;
+    return {m, tags, score};
+  });
+  const total = scored.reduce((s,x) => s + x.score, 0);
+  let r = Math.random() * total;
+  for (const x of scored) {
+    r -= x.score;
+    if (r <= 0) return x;
+  }
+  return scored[scored.length - 1];
+}
+
+function renderStreakBadge() {
+  const streak = calcStreak(getHistory());
+  const el = document.getElementById('streakBadge');
+  if (streak >= 2) {
+    el.textContent = `🔥 ${streak}日連続で受け取っています`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function renderHistoryPanel() {
+  const panel = document.getElementById('historyPanel');
+  const history = [...getHistory()].reverse().slice(0, 14);
+  if (history.length === 0) {
+    panel.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--dim)">まだ履歴がありません</div>';
+    return;
+  }
+  panel.innerHTML = history.map(h => `
+    <div class="history-item">
+      <div class="history-date">${h.date}</div>
+      <div class="history-text">${h.message}</div>
+    </div>
+  `).join('');
+}
+
+function toggleHistoryPanel() {
+  const panel = document.getElementById('historyPanel');
+  const willShow = panel.style.display === 'none';
+  if (willShow) renderHistoryPanel();
+  panel.style.display = willShow ? 'block' : 'none';
+  gtag('event', 'history_toggle', {event_category: 'oracle', event_label: willShow ? 'open' : 'close'});
+}
+
+function renderBottomArea(locked) {
+  const area = document.getElementById('oracleBottomArea');
+  if (locked) {
+    area.innerHTML = `
+      <div class="locked-note">✦ 今日のメッセージはこちらです。<br>また明日、新しいメッセージが届きます。</div>
+      <button class="history-toggle-btn" onclick="toggleHistoryPanel()">📜 これまでのメッセージを見る</button>
+    `;
+  } else {
+    area.innerHTML = `
+      <button class="history-toggle-btn" onclick="toggleHistoryPanel()">📜 これまでのメッセージを見る</button>
+    `;
+  }
+}
+
+// 初回訪問（診断プロフィール未保存）は診断タブを既定表示にする
+function chooseInitialMode() {
+  const profile = getDiagProfile();
+  if (!profile) {
+    switchMode('diag');
+  }
+}
+
+// データ読み込み完了後、今日すでに引いているかどうかでカード表示を分岐する
+function initOracleUI() {
+  renderStreakBadge();
+  const today = getTodayDraw();
+  const cardEl = document.getElementById('oracleCard');
+  const hintEl = document.getElementById('cardHint');
+
+  if (today) {
+    // ロック状態：カードは開けず、今日の結果を直接表示
+    isFlipped = true;
+    cardEl.classList.add('disabled');
+    cardEl.onclick = function() {
+      gtag('event', 'oracle_limit_reached', {event_category: 'oracle', event_label: 'already_drawn_today'});
+    };
+    hintEl.textContent = '今日はすでに受け取りました';
+    document.getElementById('cardInner').classList.add('flipped');
+    document.getElementById('oracleLabel').textContent = "Today's Message";
+    document.getElementById('oracleMessage').innerText = today.message;
+    CURRENT_SHARE_TEXT = today.message;
+    const contents = getContentsByTags(today.tags || [], 3);
+    renderContentCards('oracleContents', contents, 'oracle');
+    document.getElementById('oracleResult').style.display = 'block';
+    renderBottomArea(true);
+  } else {
+    cardEl.classList.remove('disabled');
+    cardEl.onclick = flipCard;
+    hintEl.textContent = 'タップしてカードを開く';
+  }
+}
 
 function switchMode(mode) {
   currentMode = mode;
@@ -277,26 +448,37 @@ function switchMode(mode) {
 function flipCard() {
   if (isFlipped) return;
   if (!dataLoaded || ORACLE_MESSAGES.length === 0) return;
+  if (getTodayDraw()) { initOracleUI(); return; } // 二重引き防止（念のため）
   isFlipped = true;
-  const msg = ORACLE_MESSAGES[Math.floor(Math.random() * ORACLE_MESSAGES.length)];
+
+  const picked = pickWeightedMessage();
+  const msg = picked.m;
+  const msgTags = picked.tags;
   const msgText = msg.msg || msg.message || "";
+  const msgId = msg.id || "";
+
   document.getElementById('oracleMessage').innerText = msgText;
   document.getElementById('cardInner').classList.add('flipped');
-  gtag('event', 'oracle_card_flip', {event_category: 'oracle', event_label: msgText.substring(0, 50)});
+  CURRENT_SHARE_TEXT = msgText;
+  gtag('event', 'oracle_card_flip', {
+    event_category: 'oracle',
+    event_label: msgText.substring(0, 50),
+    tags: msgTags.join(',')
+  });
+
+  pushHistory({date: todayStr(), messageId: msgId, message: msgText, tags: msgTags});
+
   setTimeout(() => {
-    const msgTags = msg.tags || [];
     const contents = getContentsByTags(msgTags, 3);
-    renderContentCards('oracleContents', contents);
+    renderContentCards('oracleContents', contents, 'oracle');
     document.getElementById('oracleResult').style.display = 'block';
     document.getElementById('oracleResult').scrollIntoView({behavior:'smooth',block:'start'});
+    renderStreakBadge();
+    renderBottomArea(true);
+    document.getElementById('oracleCard').onclick = function() {
+      gtag('event', 'oracle_limit_reached', {event_category: 'oracle', event_label: 'already_drawn_today'});
+    };
   }, 900);
-}
-
-function resetOracle() {
-  isFlipped = false;
-  document.getElementById('cardInner').classList.remove('flipped');
-  document.getElementById('oracleResult').style.display = 'none';
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // Diagnostic
@@ -341,6 +523,7 @@ function renderDiagStep() {
   const flow = document.getElementById('diagFlow');
   if (diagState.step < DIAG_STEPS.length) {
     const step = DIAG_STEPS[diagState.step];
+    gtag('event', 'diagnosis_step_view', {event_category: 'diagnosis', event_label: 'step_' + (diagState.step + 1)});
     flow.innerHTML = `
       <div class="diag-question">${step.question}</div>
       <div class="diag-options">
@@ -362,6 +545,10 @@ function renderDiagStep() {
 function selectDiagOption(idx) {
   const step = DIAG_STEPS[diagState.step];
   const option = step.options[idx];
+  gtag('event', 'diagnosis_step_answer', {
+    event_category: 'diagnosis',
+    event_label: 'step_' + (diagState.step + 1) + ':' + option.value
+  });
   diagState.collectedTags.push(...option.tags);
   diagState.lastValue = option.value;
   diagState.step++;
@@ -381,9 +568,19 @@ function showDiagResult() {
     const score = diagState.collectedTags.filter(t => v.includes(t)).length;
     if (score > bestScore) { bestScore = score; bestKey = k; }
   }
-  gtag('event', 'diagnosis_complete', {event_category: 'diagnosis', event_label: bestKey});
+  // 診断プロフィールを保存し、以後のオラクル抽選に反映させる
+  const uniqueTags = [...new Set(diagState.collectedTags)];
+  saveDiagProfile(uniqueTags, bestKey);
+  gtag('event', 'diagnosis_complete', {
+    event_category: 'diagnosis',
+    event_label: bestKey,
+    diagnosis_tags: uniqueTags.join(',')
+  });
+
   const msgs = DIAG_MESSAGES[bestKey];
+  CURRENT_SHARE_TEXT = msgs.join(' ');
   const contents = getContentsByTags(diagState.collectedTags, 3);
+  const alreadyDrawnToday = !!getTodayDraw();
   flow.innerHTML = `
     <div style="text-align:center;margin-top:20px">
       <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Your Soul Reading</div>
@@ -403,11 +600,14 @@ function showDiagResult() {
         <button class="btn btn-ghost" onclick="copyLink()" style="font-size:12px;padding:10px 20px;" id="copyBtn2">リンクをコピー</button>
       </div>
     </div>
+    <div class="diag-cta">
+      <button class="btn btn-primary" onclick="switchMode('oracle')">${alreadyDrawnToday ? '今日のメッセージを見る' : '今日のメッセージを受け取る'}</button>
+    </div>
     <div style="text-align:center;margin-bottom:40px">
-      <button class="btn btn-primary" onclick="switchMode('diag')">もう一度診断する</button>
+      <button class="history-toggle-btn" onclick="diagState={step:0,collectedTags:[]};renderDiagStep()">もう一度診断する</button>
     </div>
   `;
-  renderContentCards('diagContents', contents);
+  renderContentCards('diagContents', contents, 'diag');
 }
 
 // Content matching
@@ -439,14 +639,16 @@ function getContentsByTags(tags, count) {
   return result.slice(0, count);
 }
 
-function renderContentCards(containerId, contents) {
+function renderContentCards(containerId, contents, context) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  container.innerHTML = contents.map(c => {
+  context = context || 'unknown';
+  container.innerHTML = contents.map((c, idx) => {
     const typeLabel = c.type === 'youtube' ? '▶ YouTube' : c.type === 'note' ? '📖 Note' : '🎧 Podcast';
     const typeClass = 'type-' + c.type;
+    const title = (c.title || '').substring(0,40).replace(/'/g,'');
     return `
-      <a class="content-card" href="${c.url}" target="_blank" rel="noopener" onclick="gtag('event','content_click',{event_category:'content',event_label:'${c.type}: ${(c.title||'').substring(0,40).replace(/'/g,'')}'})">
+      <a class="content-card" href="${c.url}" target="_blank" rel="noopener" onclick="gtag('event','content_click',{event_category:'content',event_label:'${c.type}: ${title}',content_position:${idx+1},content_context:'${context}'})">
         <div class="content-type ${typeClass}">${typeLabel}</div>
         <div class="content-title">${c.title}</div>
       </a>
@@ -457,7 +659,8 @@ function renderContentCards(containerId, contents) {
 // Share
 function shareTwitter() {
   gtag('event', 'share', {event_category: 'share', event_label: 'twitter'});
-  const text = "プレアデス高等評議会から、今日のメッセージを受け取りました ✦\n\n#SpiritualAgent #プレアデス #スピリチュアル";
+  const snippet = CURRENT_SHARE_TEXT ? ('「' + CURRENT_SHARE_TEXT.substring(0, 40) + (CURRENT_SHARE_TEXT.length > 40 ? '…' : '') + '」\n\n') : '';
+  const text = snippet + "プレアデス高等評議会から、今日のメッセージを受け取りました ✦\n\n#SpiritualAgent #プレアデス #スピリチュアル";
   const url = window.location.href;
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
 }
@@ -507,6 +710,19 @@ function copyLink() {
   resize();
   draw();
 })();
+
+// ==========================================
+// PWA計測（manifest導入前は発火しないが、先行して仕込んでおく）
+// ==========================================
+window.addEventListener('beforeinstallprompt', function() {
+  gtag('event', 'pwa_prompt_shown', {event_category: 'pwa'});
+});
+window.addEventListener('appinstalled', function() {
+  gtag('event', 'pwa_installed', {event_category: 'pwa'});
+});
+
+// すべての定義が済んでから初期タブを決定する
+chooseInitialMode();
 </script>
 </body>
 </html>
