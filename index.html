@@ -35,6 +35,15 @@
 <meta name="twitter:title" content="Spiritual Agent — 宇宙からのメッセージ">
 <meta name="twitter:description" content="プレアデス高等評議会から、今日のあなたに届いたメッセージを受け取ってください。">
 <meta name="twitter:image" content="https://spiritualagent.github.io/spiritual-agent-oracle/og-image.png">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12103a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spiritual Agent">
+
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -869,6 +878,15 @@ window.addEventListener('beforeinstallprompt', function() {
 window.addEventListener('appinstalled', function() {
   gtag('event', 'pwa_installed', {event_category: 'pwa'});
 });
+
+// サービスワーカー登録（PWA化：オフライン対応・ホーム画面追加を可能にする）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.error('サービスワーカーの登録に失敗:', err);
+    });
+  });
+}
 
 // すべての定義が済んでから初期タブを決定する
 chooseInitialMode();
