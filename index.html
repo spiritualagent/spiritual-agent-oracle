@@ -28,6 +28,13 @@
 <meta property="og:description" content="プレアデス高等評議会から、今日のあなたに届いたメッセージを受け取ってください。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://spiritualagent.github.io/spiritual-agent-oracle/">
+<meta property="og:image" content="https://spiritualagent.github.io/spiritual-agent-oracle/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Spiritual Agent — 宇宙からのメッセージ">
+<meta name="twitter:description" content="プレアデス高等評議会から、今日のあなたに届いたメッセージを受け取ってください。">
+<meta name="twitter:image" content="https://spiritualagent.github.io/spiritual-agent-oracle/og-image.png">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -215,6 +222,7 @@ body{
         <div class="share-text">このメッセージを大切な人に届ける</div>
         <div class="share-buttons">
           <button class="btn btn-ghost" onclick="shareTwitter()" style="font-size:12px;padding:10px 20px;">𝕏 でシェア</button>
+          <button class="btn btn-ghost" onclick="downloadShareImage()" style="font-size:12px;padding:10px 20px;">🖼 画像を保存</button>
           <button class="btn btn-ghost" onclick="copyLink()" style="font-size:12px;padding:10px 20px;" id="copyBtn">リンクをコピー</button>
         </div>
       </div>
@@ -597,6 +605,7 @@ function showDiagResult() {
       <div class="share-text">この診断結果をシェアする</div>
       <div class="share-buttons">
         <button class="btn btn-ghost" onclick="shareTwitter()" style="font-size:12px;padding:10px 20px;">𝕏 でシェア</button>
+        <button class="btn btn-ghost" onclick="downloadShareImage()" style="font-size:12px;padding:10px 20px;">🖼 画像を保存</button>
         <button class="btn btn-ghost" onclick="copyLink()" style="font-size:12px;padding:10px 20px;" id="copyBtn2">リンクをコピー</button>
       </div>
     </div>
@@ -663,6 +672,146 @@ function shareTwitter() {
   const text = snippet + "プレアデス高等評議会から、今日のメッセージを受け取りました ✦\n\n#SpiritualAgent #プレアデス #スピリチュアル";
   const url = window.location.href;
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
+}
+
+// 画像カードシェア（Canvas生成）
+function wrapCanvasText(ctx, text, maxWidth) {
+  const lines = [];
+  let line = '';
+  for (const ch of text) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line.length > 0) {
+      lines.push(line);
+      line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function wrapAndFit(ctx, text, maxWidth, maxLines, startSize, minSize) {
+  let size = startSize;
+  let lines = [text];
+  while (size >= minSize) {
+    ctx.font = `${size}px "Noto Serif JP", serif`;
+    lines = wrapCanvasText(ctx, text, maxWidth);
+    if (lines.length <= maxLines) break;
+    size -= 2;
+  }
+  return {lines, size};
+}
+
+async function buildShareCanvas(messageText) {
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e) {} }
+
+  const W = 1080, H = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const cs = getComputedStyle(document.documentElement);
+  const pick = (name, fallback) => (cs.getPropertyValue(name) || '').trim() || fallback;
+  const bg = pick('--bg', '#07060e');
+  const accent = pick('--accent', '#9b8aff');
+  const accent2 = pick('--accent2', '#c5a0ff');
+  const gold = pick('--gold', '#e8c469');
+  const bright = pick('--bright', '#f4f2ff');
+  const dim = pick('--dim', '#6e6b8a');
+
+  // 背景グラデーション
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#12103a');
+  grad.addColorStop(1, bg);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 星
+  for (let i = 0; i < 100; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random()*W, Math.random()*H, Math.random()*1.8+0.4, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(200,190,255,${(Math.random()*0.5+0.15).toFixed(2)})`;
+    ctx.fill();
+  }
+
+  // 枠線
+  ctx.strokeStyle = 'rgba(155,138,255,0.35)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(36, 36, W-72, H-72);
+
+  ctx.textAlign = 'center';
+
+  // シンボル（✦の代替を図形で描画）
+  const sx = W/2, sy = 150, ssize = 30;
+  ctx.fillStyle = accent2;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy-ssize); ctx.lineTo(sx-ssize*0.28, sy); ctx.lineTo(sx, sy+ssize); ctx.lineTo(sx+ssize*0.28, sy);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(sx-ssize, sy); ctx.lineTo(sx, sy-ssize*0.28); ctx.lineTo(sx+ssize, sy); ctx.lineTo(sx, sy+ssize*0.28);
+  ctx.closePath(); ctx.fill();
+
+  // ロゴラベル
+  ctx.fillStyle = accent;
+  ctx.font = "28px 'Zen Kaku Gothic New', sans-serif";
+  ctx.fillText('S P I R I T U A L   A G E N T', W/2, 230);
+
+  ctx.fillStyle = gold;
+  ctx.font = "20px 'Noto Sans JP', sans-serif";
+  ctx.fillText("Today's Message", W/2, 270);
+
+  // メッセージ本文（自動改行・自動縮小）
+  const maxWidth = W - 200;
+  const {lines, size} = wrapAndFit(ctx, messageText, maxWidth, 8, 46, 28);
+  ctx.font = `${size}px "Noto Serif JP", serif`;
+  ctx.fillStyle = bright;
+  const lineHeight = size * 1.7;
+  const startY = H/2 - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((line, i) => ctx.fillText(line, W/2, startY + i*lineHeight));
+
+  // フッター
+  ctx.fillStyle = dim;
+  ctx.font = "20px 'Noto Sans JP', sans-serif";
+  ctx.fillText('— プレアデス高等評議会 —', W/2, H-160);
+
+  ctx.fillStyle = accent2;
+  ctx.font = "16px 'Noto Sans JP', sans-serif";
+  ctx.fillText('spiritualagent.github.io/spiritual-agent-oracle', W/2, H-100);
+
+  return canvas;
+}
+
+async function downloadShareImage() {
+  if (!CURRENT_SHARE_TEXT) return;
+  gtag('event', 'share', {event_category: 'share', event_label: 'image_card'});
+  let canvas;
+  try {
+    canvas = await buildShareCanvas(CURRENT_SHARE_TEXT);
+  } catch (e) {
+    console.error('画像生成エラー:', e);
+    return;
+  }
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    const file = new File([blob], 'spiritual-agent-message.png', {type: 'image/png'});
+    if (navigator.canShare && navigator.canShare({files: [file]})) {
+      try {
+        await navigator.share({files: [file], title: 'Spiritual Agent', text: '今日のメッセージ'});
+        return;
+      } catch (e) {
+        // ユーザーによるキャンセル等はダウンロードにフォールバック
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'spiritual-agent-message.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 'image/png');
 }
 
 function copyLink() {
